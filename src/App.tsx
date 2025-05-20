@@ -12,6 +12,8 @@ import JobBoard from "./pages/JobBoard";
 import InterviewSimulation from "./pages/InterviewSimulation";
 import NotFound from "./pages/NotFound";
 import AuthRedirect from "./components/auth/AuthRedirect";
+import SignInPage from "./pages/SignIn";
+import SignUpPage from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
         <ClerkLoaded>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/signin" element={<SignInPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
             
             {/* Protected routes */}
             <Route path="/dashboard" element={

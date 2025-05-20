@@ -14,12 +14,12 @@ const AuthRedirect = () => {
       variant: "destructive"
     });
     
-    navigate("/", { replace: true });
+    navigate("/signin", { replace: true });
   }, [navigate, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse text-primary">Redirecting...</div>
+      <div className="animate-pulse text-primary">Redirecting to sign in...</div>
     </div>
   );
 };

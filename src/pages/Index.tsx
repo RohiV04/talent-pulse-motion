@@ -1,9 +1,8 @@
-
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
-import { SignIn, SignUp, useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { useUser, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { ArrowRight, Check, FileText, User, Video } from "lucide-react";
 import { useEffect } from "react";
 
@@ -30,6 +29,16 @@ const Index = () => {
         </div>
         <div className="flex items-center space-x-4">
           <ThemeToggle />
+          
+          <SignedOut>
+            <Link to="/signin">
+              <Button variant="outline" size="sm">Sign In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button size="sm">Sign Up</Button>
+            </Link>
+          </SignedOut>
+          
           <SignedIn>
             <Button onClick={() => navigate("/dashboard")} variant="default">
               Go to Dashboard
@@ -69,11 +78,11 @@ const Index = () => {
                 
                 <SignedOut>
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <Button onClick={() => document.getElementById('sign-up')?.scrollIntoView({ behavior: 'smooth' })} size="lg">
+                    <Button onClick={() => navigate("/signup")} size="lg">
                       Get Started Free
                     </Button>
-                    <Button variant="outline" size="lg" onClick={() => navigate("/dashboard")}>
-                      Try Demo
+                    <Button variant="outline" size="lg" onClick={() => navigate("/signin")}>
+                      Sign In
                     </Button>
                   </div>
                 </SignedOut>
@@ -142,43 +151,8 @@ const Index = () => {
           </div>
         </section>
         
-        {/* Auth Section */}
-        <SignedOut>
-          <section id="sign-up" className="py-16 px-4 lg:px-8">
-            <div className="container mx-auto max-w-6xl">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-2">Get Started Today</h2>
-                <p className="text-muted-foreground">Create your account to unlock all features</p>
-              </div>
-              
-              <div className="flex flex-col md:flex-row justify-center gap-8 items-start">
-                <div className="w-full md:w-1/2 max-w-md">
-                  <div className="bg-card rounded-xl border shadow-md p-6">
-                    <h3 className="text-xl font-semibold mb-6 text-center">Sign In</h3>
-                    <SignIn 
-                      routing="path" 
-                      path="/"
-                      signUpUrl="/"
-                      afterSignInUrl="/dashboard"
-                    />
-                  </div>
-                </div>
-                
-                <div className="w-full md:w-1/2 max-w-md">
-                  <div className="bg-card rounded-xl border shadow-md p-6">
-                    <h3 className="text-xl font-semibold mb-6 text-center">Sign Up</h3>
-                    <SignUp 
-                      routing="path" 
-                      path="/"
-                      signInUrl="/"
-                      afterSignUpUrl="/dashboard"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </SignedOut>
+        {/* Remove Auth Section with Clerk components since we now have separate pages */}
+        
       </main>
 
       <footer className="border-t py-8 px-4 lg:px-8 bg-secondary/5">
