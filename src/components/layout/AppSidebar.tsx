@@ -19,6 +19,7 @@ import {
   BookOpen, 
   Briefcase,
   HelpCircle,
+  Video,
   LogOut
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 interface MenuItem {
   title: string;
@@ -36,34 +38,41 @@ interface MenuItem {
 export function AppSidebar() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   const mainMenuItems: MenuItem[] = [
     { title: "Dashboard", icon: BarChart, path: "/dashboard" },
     { title: "Resumes", icon: FileText, path: "/dashboard/resumes" },
     { title: "Job Board", icon: Briefcase, path: "/dashboard/jobs" },
+    { title: "Interview Practice", icon: Video, path: "/dashboard/interview" },
     { title: "Learning", icon: BookOpen, path: "/dashboard/learning" },
     { title: "Profile", icon: User, path: "/dashboard/profile" },
     { title: "Settings", icon: Settings, path: "/dashboard/settings" },
   ];
 
   const handleNavigation = (path: string) => {
-    // For demo purposes, show a toast instead of navigating for most pages
-    if (path === "/dashboard") {
+    // Check if the path exists in our routes
+    const validPaths = ["/dashboard", "/dashboard/resumes/new", "/dashboard/jobs", "/dashboard/interview"];
+    
+    if (validPaths.includes(path)) {
       navigate(path);
     } else {
       toast({
-        title: "Navigation",
-        description: `Navigating to ${path} would happen here.`,
+        title: "Coming Soon",
+        description: `The ${path.split("/").pop()} feature is coming soon.`,
       });
     }
   };
 
   const handleLogout = () => {
-    toast({
-      title: "Logging out",
-      description: "You would be logged out here.",
+    signOut().then(() => {
+      toast({
+        title: "Logged out",
+        description: "You've been successfully logged out.",
+      });
+      navigate("/");
     });
-    navigate("/");
   };
 
   return (
@@ -71,12 +80,12 @@ export function AppSidebar() {
       <SidebarHeader className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center space-x-2">
           <Avatar>
-            <AvatarImage src="" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={user?.imageUrl || ""} />
+            <AvatarFallback>{user?.firstName?.charAt(0) || user?.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">User Name</p>
-            <p className="text-xs text-muted-foreground">user@example.com</p>
+            <p className="text-sm font-medium">{user?.fullName || "User"}</p>
+            <p className="text-xs text-muted-foreground">{user?.emailAddresses[0]?.emailAddress || "user@example.com"}</p>
           </div>
         </div>
       </SidebarHeader>

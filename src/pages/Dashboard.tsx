@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { FileText, Book, Briefcase, PlusCircle } from "lucide-react";
+import { FileText, Book, Briefcase, PlusCircle, Video } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import DashboardMetricCard from "@/components/dashboard/DashboardMetricCard";
 import ResumeProgressCard from "@/components/dashboard/ResumeProgressCard";
@@ -8,10 +8,12 @@ import QuickActionCard from "@/components/dashboard/QuickActionCard";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
 const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAction = (action: string) => {
@@ -22,6 +24,10 @@ const Dashboard = () => {
       
       if (action === "create") {
         navigate("/dashboard/resumes/new");
+      } else if (action === "jobs") {
+        navigate("/dashboard/jobs");
+      } else if (action === "interview") {
+        navigate("/dashboard/interview");
       } else {
         toast({
           title: "Action Triggered",
@@ -35,7 +41,7 @@ const Dashboard = () => {
     <AppLayout>
       <div className="space-y-8 animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.firstName || 'there'}!</h1>
           <p className="text-muted-foreground">
             Here's an overview of your resume progress and career development.
           </p>
@@ -57,7 +63,7 @@ const Dashboard = () => {
             title="Interview Practice"
             value="2"
             description="Sessions completed"
-            icon={<Book className="h-4 w-4" />}
+            icon={<Video className="h-4 w-4" />}
             variant="purple"
           />
           <DashboardMetricCard
@@ -88,7 +94,7 @@ const Dashboard = () => {
             <QuickActionCard
               title="Practice Interview"
               description="Prepare for your next interview with AI coaching."
-              icon={<Book className="h-4 w-4" />}
+              icon={<Video className="h-4 w-4" />}
               buttonText="Start Practice"
               onClick={() => handleAction("interview")}
             />
