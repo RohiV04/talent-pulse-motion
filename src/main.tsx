@@ -5,7 +5,7 @@ import App from './App.tsx';
 import './index.css';
 
 // Make sure to set your publishable key from environment variables
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const PUBLISHABLE_KEY = "pk_test_Y2xvc2luZy1iYXJuYWNsZS0yOC5jbGVyay5hY2NvdW50cy5kZXYk";
 
 // Check if the key is available
 if (!PUBLISHABLE_KEY) {
