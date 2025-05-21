@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ResumeNew from "./pages/ResumeNew";
 import ResumeEditor from "./pages/ResumeEditor";
+import ResumeAtsScore from "./pages/ResumeAtsScore";
 import JobBoard from "./pages/JobBoard";
 import InterviewSimulation from "./pages/InterviewSimulation";
 import NotFound from "./pages/NotFound";
@@ -50,6 +51,11 @@ const App = () => (
             <Route path="/dashboard/resumes/:id" element={
               <SignedIn>
                 <ResumeEditor />
+              </SignedIn>
+            } />
+            <Route path="/dashboard/resumes/:id/ats" element={
+              <SignedIn>
+                <ResumeAtsScore />
               </SignedIn>
             } />
             <Route path="/dashboard/jobs" element={
