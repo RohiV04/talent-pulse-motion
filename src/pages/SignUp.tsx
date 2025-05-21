@@ -17,7 +17,7 @@ const SignUpPage = () => {
           <p className="text-white/60">Sign up to get started with ResumeAI</p>
         </div>
         
-        <div className="bg-[#0f172a] rounded-xl border border-white/10 shadow-lg p-6">
+        <div className="bg-[#0f172a] rounded-xl border border-white/10 shadow-xl p-6 backdrop-blur-sm">
           <SignUp 
             routing="path" 
             path="/signup"
@@ -29,22 +29,24 @@ const SignUpPage = () => {
                 card: "shadow-none p-0",
                 headerTitle: "hidden",
                 headerSubtitle: "hidden",
-                formButtonPrimary: "bg-[#9b87f5] hover:bg-[#8b5cf6] text-white",
-                socialButtonsBlockButton: "border border-white/20 bg-[#0f172a] hover:bg-[#1a2234] text-white",
+                formButtonPrimary: "bg-[#9b87f5] hover:bg-[#7c65da] text-white font-medium transition-colors shadow-md",
+                socialButtonsBlockButton: "border border-white/20 bg-[#0f172a] hover:bg-[#1a2234] text-white transition-colors",
                 footerAction: "text-sm text-white/60",
                 formFieldLabel: "text-sm font-medium text-white/80",
-                formFieldInput: "bg-[#1a2234] border-white/10 text-white",
+                formFieldInput: "bg-[#1a2234] border-white/10 text-white rounded-md h-11",
                 identityPreviewText: "text-white/80",
-                identityPreviewEditButton: "text-[#9b87f5]",
-                formFieldAction: "text-[#9b87f5]",
+                identityPreviewEditButton: "text-[#9b87f5] hover:text-[#7c65da]",
+                formFieldAction: "text-[#9b87f5] hover:text-[#7c65da]",
                 formFieldSuccessText: "text-green-400",
                 dividerText: "text-white/40",
+                dividerLine: "bg-white/10",
                 formFieldErrorText: "text-red-400",
                 logoBox: "hidden",
                 header: "hidden",
               },
               layout: {
-                socialButtonsPlacement: "bottom"
+                socialButtonsPlacement: "bottom",
+                socialButtonsVariant: "blockButton"
               }
             }}
           />

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,8 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import RichTextEditor from '@/components/resume/RichTextEditor';
-import { Plus, Download, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, Download, ArrowLeft, Trash2, Sparkles } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
+import { useAIGenerator } from '@/services/ai-generator';
 import {
   updatePersonalInfo,
   updateSummary,
@@ -40,9 +40,11 @@ const ResumeEditor = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const resumePreviewRef = useRef<HTMLDivElement>(null);
+  const { generateWithAI } = useAIGenerator();
   
   const resume = useSelector((state: RootState) => state.resume);
   const [newSkill, setNewSkill] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Generate unique ID
   const generateId = () => {
@@ -126,6 +128,74 @@ const ResumeEditor = () => {
     
     dispatch(addSkill(skill));
     setNewSkill('');
+  };
+
+  // Generate AI content for summary
+  const generateSummaryWithAI = async () => {
+    setIsGenerating(true);
+    try {
+      const generatedText = await generateWithAI({
+        resumeSection: "summary",
+        jobTitle: resume.personalInfo.title,
+        currentText: resume.summary
+      });
+      
+      if (generatedText) {
+        dispatch(updateSummary(generatedText));
+      }
+    } catch (error) {
+      console.error("Error generating summary:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Generate AI content for experience
+  const generateExperienceWithAI = async (id: string, title: string, company: string, description: string) => {
+    setIsGenerating(true);
+    try {
+      const generatedText = await generateWithAI({
+        resumeSection: "experience",
+        jobTitle: title,
+        fieldContext: company,
+        currentText: description
+      });
+      
+      if (generatedText) {
+        dispatch(updateExperience({ 
+          id, 
+          data: { description: generatedText } 
+        }));
+      }
+    } catch (error) {
+      console.error("Error generating experience:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Generate AI content for education
+  const generateEducationWithAI = async (id: string, degree: string, school: string, description: string) => {
+    setIsGenerating(true);
+    try {
+      const generatedText = await generateWithAI({
+        resumeSection: "education",
+        jobTitle: degree,
+        fieldContext: school,
+        currentText: description
+      });
+      
+      if (generatedText) {
+        dispatch(updateEducation({ 
+          id, 
+          data: { description: generatedText } 
+        }));
+      }
+    } catch (error) {
+      console.error("Error generating education:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -241,7 +311,19 @@ const ResumeEditor = () => {
                 <AccordionTrigger>Professional Summary</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-4 pt-4">
-                    <Label>Summary</Label>
+                    <div className="flex justify-between items-center">
+                      <Label>Summary</Label>
+                      <Button 
+                        onClick={generateSummaryWithAI}
+                        variant="outline"
+                        size="sm"
+                        disabled={isGenerating}
+                        className="flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Generate with AI
+                      </Button>
+                    </div>
                     <RichTextEditor 
                       value={resume.summary}
                       onChange={(value) => dispatch(updateSummary(value))}
@@ -331,7 +413,19 @@ const ResumeEditor = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label>Description</Label>
+                          <div className="flex justify-between items-center">
+                            <Label>Description</Label>
+                            <Button 
+                              onClick={() => generateExperienceWithAI(exp.id, exp.title, exp.company, exp.description)}
+                              variant="outline"
+                              size="sm"
+                              disabled={isGenerating}
+                              className="flex items-center gap-1"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              Generate with AI
+                            </Button>
+                          </div>
                           <RichTextEditor 
                             value={exp.description}
                             onChange={(value) => dispatch(updateExperience({ 
@@ -425,7 +519,19 @@ const ResumeEditor = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label>Description</Label>
+                          <div className="flex justify-between items-center">
+                            <Label>Description</Label>
+                            <Button 
+                              onClick={() => generateEducationWithAI(edu.id, edu.degree, edu.school, edu.description)}
+                              variant="outline"
+                              size="sm"
+                              disabled={isGenerating}
+                              className="flex items-center gap-1"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              Generate with AI
+                            </Button>
+                          </div>
                           <RichTextEditor 
                             value={edu.description}
                             onChange={(value) => dispatch(updateEducation({ 
