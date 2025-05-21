@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layout/AppLayout";
 import ResumeTemplateCard from "@/components/resume/ResumeTemplateCard";
 import { useToast } from "@/hooks/use-toast";
+import { useDispatch } from "react-redux";
+import { resetResume } from "@/store/resumeSlice";
 
 interface ResumeTemplate {
   id: string;
@@ -18,6 +20,7 @@ interface ResumeTemplate {
 
 const ResumeNew = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -89,12 +92,14 @@ const ResumeNew = () => {
       return;
     }
 
-    toast({
-      title: "Template selected!",
-      description: "You'd now be taken to the resume editor.",
-    });
-
-    navigate("/dashboard");
+    // Reset the resume state to start fresh
+    dispatch(resetResume());
+    
+    // Generate a unique ID for the new resume
+    const newResumeId = Date.now().toString();
+    
+    // Navigate to the resume editor with the new ID
+    navigate(`/dashboard/resumes/${newResumeId}`);
   };
 
   const filterTemplates = (category: string) => {

@@ -8,6 +8,7 @@ import { ClerkLoaded, ClerkLoading, SignedIn, SignedOut } from "@clerk/clerk-rea
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ResumeNew from "./pages/ResumeNew";
+import ResumeEditor from "./pages/ResumeEditor";
 import JobBoard from "./pages/JobBoard";
 import InterviewSimulation from "./pages/InterviewSimulation";
 import NotFound from "./pages/NotFound";
@@ -44,6 +45,11 @@ const App = () => (
             <Route path="/dashboard/resumes/new" element={
               <SignedIn>
                 <ResumeNew />
+              </SignedIn>
+            } />
+            <Route path="/dashboard/resumes/:id" element={
+              <SignedIn>
+                <ResumeEditor />
               </SignedIn>
             } />
             <Route path="/dashboard/jobs" element={
