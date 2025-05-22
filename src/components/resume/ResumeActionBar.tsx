@@ -115,7 +115,7 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
     setTimeout(() => {
       // Populate with example data
       dispatch(updatePersonalInfo({
-        fullName: resumeFullName || "Your Name (Imported)",
+        fullName: "Your Name (Imported)",
         title: "Professional Title (Imported from Resume)",
         email: "imported@example.com",
         phone: "(123) 456-7890",
@@ -152,7 +152,7 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
     setTimeout(() => {
       // Populate with example data
       dispatch(updatePersonalInfo({
-        fullName: resumeFullName || "LinkedIn User",
+        fullName: "LinkedIn User",
         title: "Professional Title (Imported from LinkedIn)",
         email: "linkedin@example.com",
         phone: "(123) 456-7890",

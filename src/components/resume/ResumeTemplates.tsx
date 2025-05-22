@@ -22,7 +22,7 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
     }
   };
 
-  // Professional template - with compact text sizing
+  // Professional template - with original styling
   const ProfessionalTemplate = () => (
     <div className="bg-white text-black p-6 min-h-[1100px] max-w-[800px] mx-auto font-serif">
       <header className="text-center mb-4 pb-4 border-b-2 border-resume-gray">
