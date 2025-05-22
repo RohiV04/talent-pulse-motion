@@ -1,6 +1,16 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+interface PersonalInfo {
+  fullName: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+  website: string;
+  linkedin: string;
+}
+
 export interface Experience {
   id: string;
   title: string;
@@ -25,44 +35,28 @@ export interface Skill {
   name: string;
 }
 
-export interface Certificate {
+export interface Project {
   id: string;
-  name: string;
-  issuer: string;
-  date: string;
-}
-
-export interface Language {
-  id: string;
-  name: string;
-  proficiency: string;
-}
-
-export interface PersonalInfo {
-  fullName: string;
   title: string;
-  email: string;
-  phone: string;
-  location: string;
-  website: string;
-  linkedin: string;
+  description: string;
+  technologies: string;
+  link: string;
+  startDate: string;
+  endDate: string;
 }
 
-export interface ResumeState {
-  id: string;
+interface ResumeState {
+  templateStyle: string;
   personalInfo: PersonalInfo;
   summary: string;
   experience: Experience[];
   education: Education[];
   skills: Skill[];
-  certificates: Certificate[];
-  languages: Language[];
-  createdAt: string;
-  updatedAt: string;
+  projects: Project[];
 }
 
 const initialState: ResumeState = {
-  id: '',
+  templateStyle: 'professional',
   personalInfo: {
     fullName: '',
     title: '',
@@ -76,98 +70,79 @@ const initialState: ResumeState = {
   experience: [],
   education: [],
   skills: [],
-  certificates: [],
-  languages: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  projects: [],
 };
 
-export const resumeSlice = createSlice({
+const resumeSlice = createSlice({
   name: 'resume',
   initialState,
   reducers: {
-    updatePersonalInfo: (state, action: PayloadAction<Partial<PersonalInfo>>) => {
+    setTemplateStyle(state, action: PayloadAction<string>) {
+      state.templateStyle = action.payload;
+    },
+    updatePersonalInfo(state, action: PayloadAction<Partial<PersonalInfo>>) {
       state.personalInfo = { ...state.personalInfo, ...action.payload };
-      state.updatedAt = new Date().toISOString();
     },
-    updateSummary: (state, action: PayloadAction<string>) => {
+    updateSummary(state, action: PayloadAction<string>) {
       state.summary = action.payload;
-      state.updatedAt = new Date().toISOString();
     },
-    addExperience: (state, action: PayloadAction<Experience>) => {
+    // Experience actions
+    addExperience(state, action: PayloadAction<Experience>) {
       state.experience.push(action.payload);
-      state.updatedAt = new Date().toISOString();
     },
-    updateExperience: (state, action: PayloadAction<{ id: string, data: Partial<Experience> }>) => {
-      const { id, data } = action.payload;
-      const index = state.experience.findIndex(exp => exp.id === id);
+    updateExperience(state, action: PayloadAction<{ id: string; data: Partial<Experience> }>) {
+      const index = state.experience.findIndex((exp) => exp.id === action.payload.id);
       if (index !== -1) {
-        state.experience[index] = { ...state.experience[index], ...data };
-        state.updatedAt = new Date().toISOString();
+        state.experience[index] = { ...state.experience[index], ...action.payload.data };
       }
     },
-    removeExperience: (state, action: PayloadAction<string>) => {
-      state.experience = state.experience.filter(exp => exp.id !== action.payload);
-      state.updatedAt = new Date().toISOString();
+    removeExperience(state, action: PayloadAction<string>) {
+      state.experience = state.experience.filter((exp) => exp.id !== action.payload);
     },
-    addEducation: (state, action: PayloadAction<Education>) => {
+    // Education actions
+    addEducation(state, action: PayloadAction<Education>) {
       state.education.push(action.payload);
-      state.updatedAt = new Date().toISOString();
     },
-    updateEducation: (state, action: PayloadAction<{ id: string, data: Partial<Education> }>) => {
-      const { id, data } = action.payload;
-      const index = state.education.findIndex(edu => edu.id === id);
+    updateEducation(state, action: PayloadAction<{ id: string; data: Partial<Education> }>) {
+      const index = state.education.findIndex((edu) => edu.id === action.payload.id);
       if (index !== -1) {
-        state.education[index] = { ...state.education[index], ...data };
-        state.updatedAt = new Date().toISOString();
+        state.education[index] = { ...state.education[index], ...action.payload.data };
       }
     },
-    removeEducation: (state, action: PayloadAction<string>) => {
-      state.education = state.education.filter(edu => edu.id !== action.payload);
-      state.updatedAt = new Date().toISOString();
+    removeEducation(state, action: PayloadAction<string>) {
+      state.education = state.education.filter((edu) => edu.id !== action.payload);
     },
-    addSkill: (state, action: PayloadAction<Skill>) => {
+    // Skill actions
+    addSkill(state, action: PayloadAction<Skill>) {
       state.skills.push(action.payload);
-      state.updatedAt = new Date().toISOString();
     },
-    removeSkill: (state, action: PayloadAction<string>) => {
-      state.skills = state.skills.filter(skill => skill.id !== action.payload);
-      state.updatedAt = new Date().toISOString();
+    removeSkill(state, action: PayloadAction<string>) {
+      state.skills = state.skills.filter((skill) => skill.id !== action.payload);
     },
-    addCertificate: (state, action: PayloadAction<Certificate>) => {
-      state.certificates.push(action.payload);
-      state.updatedAt = new Date().toISOString();
+    // Project actions
+    addProject(state, action: PayloadAction<Project>) {
+      state.projects.push(action.payload);
     },
-    updateCertificate: (state, action: PayloadAction<{ id: string, data: Partial<Certificate> }>) => {
-      const { id, data } = action.payload;
-      const index = state.certificates.findIndex(cert => cert.id === id);
+    updateProject(state, action: PayloadAction<{ id: string; data: Partial<Project> }>) {
+      const index = state.projects.findIndex((proj) => proj.id === action.payload.id);
       if (index !== -1) {
-        state.certificates[index] = { ...state.certificates[index], ...data };
-        state.updatedAt = new Date().toISOString();
+        state.projects[index] = { ...state.projects[index], ...action.payload.data };
       }
     },
-    removeCertificate: (state, action: PayloadAction<string>) => {
-      state.certificates = state.certificates.filter(cert => cert.id !== action.payload);
-      state.updatedAt = new Date().toISOString();
+    removeProject(state, action: PayloadAction<string>) {
+      state.projects = state.projects.filter((proj) => proj.id !== action.payload);
     },
-    addLanguage: (state, action: PayloadAction<Language>) => {
-      state.languages.push(action.payload);
-      state.updatedAt = new Date().toISOString();
+    resetResume(state) {
+      return {
+        ...initialState,
+        templateStyle: state.templateStyle // Keep the selected template style
+      };
     },
-    removeLanguage: (state, action: PayloadAction<string>) => {
-      state.languages = state.languages.filter(lang => lang.id !== action.payload);
-      state.updatedAt = new Date().toISOString();
-    },
-    importResume: (state, action: PayloadAction<ResumeState>) => {
-      return { ...action.payload, updatedAt: new Date().toISOString() };
-    },
-    resetResume: () => {
-      return { ...initialState, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    }
   },
 });
 
 export const {
+  setTemplateStyle,
   updatePersonalInfo,
   updateSummary,
   addExperience,
@@ -178,13 +153,10 @@ export const {
   removeEducation,
   addSkill,
   removeSkill,
-  addCertificate,
-  updateCertificate,
-  removeCertificate,
-  addLanguage,
-  removeLanguage,
-  importResume,
-  resetResume
+  addProject,
+  updateProject,
+  removeProject,
+  resetResume,
 } = resumeSlice.actions;
 
 export default resumeSlice.reducer;

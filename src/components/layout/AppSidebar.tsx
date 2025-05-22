@@ -20,14 +20,16 @@ import {
   Briefcase,
   HelpCircle,
   Video,
-  LogOut
+  LogOut,
+  Plus
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { cn } from "@/lib/utils";
 
 interface MenuItem {
   title: string;
@@ -37,6 +39,7 @@ interface MenuItem {
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -51,9 +54,20 @@ export function AppSidebar() {
     { title: "Settings", icon: Settings, path: "/dashboard/settings" },
   ];
 
+  const isActive = (path: string) => {
+    return location.pathname === path || 
+           (path !== '/dashboard' && location.pathname.startsWith(path));
+  };
+
   const handleNavigation = (path: string) => {
     // Check if the path exists in our routes
-    const validPaths = ["/dashboard", "/dashboard/resumes/new", "/dashboard/jobs", "/dashboard/interview"];
+    const validPaths = [
+      "/dashboard", 
+      "/dashboard/resumes", 
+      "/dashboard/resumes/new",
+      "/dashboard/jobs", 
+      "/dashboard/interview"
+    ];
     
     if (validPaths.includes(path)) {
       navigate(path);
@@ -73,6 +87,10 @@ export function AppSidebar() {
       });
       navigate("/");
     });
+  };
+
+  const handleCreateNewResume = () => {
+    navigate("/dashboard/resumes/new");
   };
 
   return (
@@ -98,7 +116,11 @@ export function AppSidebar() {
               <SidebarMenu>
                 {mainMenuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild onClick={() => handleNavigation(item.path)}>
+                    <SidebarMenuButton 
+                      asChild 
+                      onClick={() => handleNavigation(item.path)}
+                      className={cn(isActive(item.path) && "bg-accent text-accent-foreground")}
+                    >
                       <div role="button" className="flex cursor-pointer items-center">
                         <item.icon className="mr-2 h-4 w-4" />
                         <span>{item.title}</span>
@@ -106,6 +128,22 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={handleCreateNewResume}>
+                    <div role="button" className="flex cursor-pointer items-center text-primary">
+                      <Plus className="mr-2 h-4 w-4" />
+                      <span>Create New Resume</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -15,7 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import RichTextEditor from '@/components/resume/RichTextEditor';
-import { Plus, Download, ArrowLeft, Trash2, Sparkles } from 'lucide-react';
+import ResumeTemplates from '@/components/resume/ResumeTemplates';
+import { Plus, Download, ArrowLeft, Trash2, Sparkles, FileText } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 import { useAIGenerator } from '@/services/ai-generator';
 import {
@@ -29,9 +31,13 @@ import {
   removeEducation,
   addSkill,
   removeSkill,
+  addProject,
+  updateProject,
+  removeProject,
   Experience,
   Education,
-  Skill
+  Skill,
+  Project
 } from '@/store/resumeSlice';
 
 const ResumeEditor = () => {
@@ -90,6 +96,11 @@ const ResumeEditor = () => {
     }
   };
 
+  // Navigate to ATS Score page
+  const navigateToAtsScore = () => {
+    navigate(`/dashboard/resumes/${id}/ats`);
+  };
+
   // Add new experience
   const addNewExperience = () => {
     const newExperience: Experience = {
@@ -115,6 +126,20 @@ const ResumeEditor = () => {
       description: ''
     };
     dispatch(addEducation(newEducation));
+  };
+
+  // Add new project
+  const addNewProject = () => {
+    const newProject: Project = {
+      id: generateId(),
+      title: '',
+      description: '',
+      technologies: '',
+      link: '',
+      startDate: '',
+      endDate: ''
+    };
+    dispatch(addProject(newProject));
   };
 
   // Add new skill
@@ -198,6 +223,30 @@ const ResumeEditor = () => {
     }
   };
 
+  // Generate AI content for projects
+  const generateProjectWithAI = async (id: string, title: string, technologies: string, description: string) => {
+    setIsGenerating(true);
+    try {
+      const generatedText = await generateWithAI({
+        resumeSection: "project",
+        jobTitle: title,
+        fieldContext: technologies,
+        currentText: description
+      });
+      
+      if (generatedText) {
+        dispatch(updateProject({ 
+          id, 
+          data: { description: generatedText } 
+        }));
+      }
+    } catch (error) {
+      console.error("Error generating project description:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col lg:flex-row gap-6 animate-fade-in">
@@ -216,10 +265,20 @@ const ResumeEditor = () => {
               <h1 className="text-2xl font-bold">Resume Editor</h1>
             </div>
             
-            <Button onClick={generatePDF} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export as PDF
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={navigateToAtsScore}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                ATS Score
+              </Button>
+              <Button onClick={generatePDF} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Export as PDF
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-6 p-6 bg-card border rounded-xl shadow-sm">
@@ -449,6 +508,124 @@ const ResumeEditor = () => {
                   </div>
                 </AccordionContent>
               </AccordionItem>
+
+              {/* Projects Section */}
+              <AccordionItem value="projects">
+                <AccordionTrigger>Projects</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-6 pt-4">
+                    {resume.projects.map((project) => (
+                      <div key={project.id} className="border rounded-lg p-4 space-y-4">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-semibold">Project</h3>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => dispatch(removeProject(project.id))}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Project Title</Label>
+                            <Input 
+                              value={project.title}
+                              onChange={(e) => dispatch(updateProject({ 
+                                id: project.id, 
+                                data: { title: e.target.value } 
+                              }))}
+                              placeholder="Project Name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Technologies Used</Label>
+                            <Input 
+                              value={project.technologies}
+                              onChange={(e) => dispatch(updateProject({ 
+                                id: project.id, 
+                                data: { technologies: e.target.value } 
+                              }))}
+                              placeholder="React, Node.js, MongoDB"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Project Link</Label>
+                          <Input 
+                            value={project.link}
+                            onChange={(e) => dispatch(updateProject({ 
+                              id: project.id, 
+                              data: { link: e.target.value } 
+                            }))}
+                            placeholder="https://github.com/username/project"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Start Date</Label>
+                            <Input 
+                              type="date"
+                              value={project.startDate}
+                              onChange={(e) => dispatch(updateProject({ 
+                                id: project.id, 
+                                data: { startDate: e.target.value } 
+                              }))}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>End Date</Label>
+                            <Input 
+                              type="date"
+                              value={project.endDate}
+                              onChange={(e) => dispatch(updateProject({ 
+                                id: project.id, 
+                                data: { endDate: e.target.value } 
+                              }))}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label>Description</Label>
+                            <Button 
+                              onClick={() => generateProjectWithAI(project.id, project.title, project.technologies, project.description)}
+                              variant="outline"
+                              size="sm"
+                              disabled={isGenerating}
+                              className="flex items-center gap-1"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              Generate with AI
+                            </Button>
+                          </div>
+                          <RichTextEditor 
+                            value={project.description}
+                            onChange={(value) => dispatch(updateProject({ 
+                              id: project.id, 
+                              data: { description: value } 
+                            }))}
+                            placeholder="Describe the project, your role, and achievements..."
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button 
+                      className="w-full flex items-center justify-center gap-2"
+                      variant="outline"
+                      onClick={addNewProject}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Project
+                    </Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
               
               {/* Education Section */}
               <AccordionItem value="education">
@@ -598,134 +775,12 @@ const ResumeEditor = () => {
         
         {/* Resume Preview */}
         <div className="lg:w-1/2">
-          <div className="bg-white rounded-xl border shadow-sm p-8 min-h-[1100px] relative">
+          <div className="bg-white rounded-xl border shadow-sm p-2 min-h-[1100px] max-h-[800px] overflow-y-auto relative">
             <h2 className="text-lg font-semibold sticky top-0 bg-card p-2 rounded z-10">
               Live Preview
             </h2>
             
-            <div ref={resumePreviewRef} className="pt-4">
-              {/* Resume Header */}
-              <div className="text-center mb-6 border-b pb-6">
-                <h1 className="text-3xl font-bold text-resume-dark-gray">
-                  {resume.personalInfo.fullName || 'Your Name'}
-                </h1>
-                <p className="text-xl text-resume-gray mt-1">
-                  {resume.personalInfo.title || 'Professional Title'}
-                </p>
-                
-                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 text-sm text-resume-gray">
-                  {resume.personalInfo.email && (
-                    <span>{resume.personalInfo.email}</span>
-                  )}
-                  {resume.personalInfo.phone && (
-                    <span>{resume.personalInfo.phone}</span>
-                  )}
-                  {resume.personalInfo.location && (
-                    <span>{resume.personalInfo.location}</span>
-                  )}
-                  {resume.personalInfo.website && (
-                    <span>{resume.personalInfo.website}</span>
-                  )}
-                  {resume.personalInfo.linkedin && (
-                    <span>{resume.personalInfo.linkedin}</span>
-                  )}
-                </div>
-              </div>
-              
-              {/* Summary Section */}
-              {resume.summary && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-resume-dark-purple border-b border-resume-gray pb-1 mb-3">
-                    PROFESSIONAL SUMMARY
-                  </h2>
-                  <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: resume.summary }} />
-                </div>
-              )}
-              
-              {/* Experience Section */}
-              {resume.experience.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-resume-dark-purple border-b border-resume-gray pb-1 mb-3">
-                    EXPERIENCE
-                  </h2>
-                  
-                  <div className="space-y-4">
-                    {resume.experience.map((exp) => (
-                      <div key={exp.id}>
-                        <div className="flex justify-between items-baseline">
-                          <h3 className="font-bold">{exp.title || 'Position Title'}</h3>
-                          <div className="text-sm text-resume-gray">
-                            {exp.startDate && exp.endDate ? 
-                              `${new Date(exp.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })} - ${new Date(exp.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}` : 
-                              'Present'
-                            }
-                          </div>
-                        </div>
-                        
-                        <div className="text-resume-gray">
-                          {[exp.company, exp.location].filter(Boolean).join(', ')}
-                        </div>
-                        
-                        <div className="text-sm prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: exp.description }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Education Section */}
-              {resume.education.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-resume-dark-purple border-b border-resume-gray pb-1 mb-3">
-                    EDUCATION
-                  </h2>
-                  
-                  <div className="space-y-4">
-                    {resume.education.map((edu) => (
-                      <div key={edu.id}>
-                        <div className="flex justify-between items-baseline">
-                          <h3 className="font-bold">{edu.degree || 'Degree'}</h3>
-                          <div className="text-sm text-resume-gray">
-                            {edu.graduationDate ? 
-                              new Date(edu.graduationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 
-                              ''
-                            }
-                          </div>
-                        </div>
-                        
-                        <div className="text-resume-gray">
-                          {[edu.school, edu.location].filter(Boolean).join(', ')}
-                        </div>
-                        
-                        {edu.description && (
-                          <div className="text-sm prose max-w-none mt-2" dangerouslySetInnerHTML={{ __html: edu.description }} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Skills Section */}
-              {resume.skills.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-resume-dark-purple border-b border-resume-gray pb-1 mb-3">
-                    SKILLS
-                  </h2>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {resume.skills.map((skill) => (
-                      <span 
-                        key={skill.id} 
-                        className="bg-resume-soft-purple text-resume-dark-purple px-3 py-1 rounded-full text-sm"
-                      >
-                        {skill.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <ResumeTemplates componentRef={resumePreviewRef} />
           </div>
         </div>
       </div>
