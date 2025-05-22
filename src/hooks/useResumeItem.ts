@@ -4,8 +4,8 @@ import { useDispatch } from 'react-redux';
 import { useAIGenerator } from '@/services/ai-generator';
 
 interface UseResumeItemProps<T> {
-  onUpdate: (id: string, data: Partial<T>) => void;
-  onRemove: (id: string) => void;
+  onUpdate: (id: string, data: Partial<T>) => any;
+  onRemove: (id: string) => any;
   onGenerateAI: (id: string, params: any) => Promise<void>;
   item: T & { id: string };
 }
@@ -20,17 +20,19 @@ export function useResumeItem<T>({
   const dispatch = useDispatch();
 
   const handleUpdate = (data: Partial<T>) => {
-    dispatch(onUpdate(item.id, { ...data }));
+    const action = onUpdate(item.id, { ...data });
+    dispatch(action);
   };
 
   const handleRemove = () => {
-    dispatch(onRemove(item.id));
+    const action = onRemove(item.id);
+    dispatch(action);
   };
 
-  const handleGenerateAI = async (...params: any[]) => {
+  const handleGenerateAI = async (params: any) => {
     setIsGenerating(true);
     try {
-      await onGenerateAI(item.id, ...params);
+      await onGenerateAI(item.id, params);
     } catch (error) {
       console.error(`Error generating content:`, error);
     } finally {
