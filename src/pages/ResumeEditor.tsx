@@ -1,4 +1,3 @@
-
 import { useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -45,12 +44,18 @@ const ResumeEditor = () => {
         
         {/* Resume Preview */}
         <div className="lg:w-1/2">
-          <div className="bg-white rounded-xl border shadow-sm p-2 min-h-[1100px] max-h-[800px] overflow-y-auto relative">
-            <h2 className="text-lg font-semibold sticky top-0 bg-card p-2 rounded z-10">
-              Live Preview
+          <div className="bg-white rounded-xl border shadow-sm p-2 min-h-[400px] max-h-[800px] overflow-y-auto relative">
+            <h2 className="text-lg font-semibold sticky top-0 bg-card p-2 rounded z-10 flex justify-between items-center">
+              <span>Live Preview</span>
+              <span className="text-xs text-muted-foreground">
+                Content will be properly formatted in the exported PDF
+              </span>
             </h2>
             
-            <ResumeTemplates componentRef={resumePreviewRef} />
+            {/* Scale down the preview for better visibility but keep the full size for PDF export */}
+            <div className="scale-[0.65] origin-top transform-gpu">
+              <ResumeTemplates componentRef={resumePreviewRef} />
+            </div>
           </div>
         </div>
       </div>
