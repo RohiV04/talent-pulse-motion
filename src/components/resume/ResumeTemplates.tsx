@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -22,14 +21,14 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
     }
   };
 
-  // Professional template - with original styling
+  // Professional template - restored original styling
   const ProfessionalTemplate = () => (
-    <div className="bg-white text-black p-6 min-h-[1100px] max-w-[800px] mx-auto font-serif">
-      <header className="text-center mb-4 pb-4 border-b-2 border-resume-gray">
-        <h1 className="text-2xl font-bold uppercase tracking-wider mb-1">{resume.personalInfo.fullName || 'Your Name'}</h1>
-        <p className="text-base text-resume-dark-gray">{resume.personalInfo.title || 'Professional Title'}</p>
+    <div className="bg-white text-black p-8 min-h-[1400px] max-w-[850px] mx-auto font-serif">
+      <header className="text-center mb-6 pb-4 border-b-2 border-resume-gray">
+        <h1 className="text-3xl font-bold uppercase tracking-wider mb-2">{resume.personalInfo.fullName || 'Your Name'}</h1>
+        <p className="text-lg text-resume-dark-gray">{resume.personalInfo.title || 'Professional Title'}</p>
         
-        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 text-xs">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 text-sm">
           {resume.personalInfo.email && (
             <span className="flex items-center"><span className="font-bold mr-1">Email:</span> {resume.personalInfo.email}</span>
           )}
@@ -49,28 +48,28 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       </header>
       
       {resume.summary && (
-        <section className="mb-4">
-          <h2 className="text-base font-bold border-b border-resume-gray pb-1 mb-2 uppercase">Professional Summary</h2>
-          <div className="text-xs prose max-w-none" dangerouslySetInnerHTML={{ __html: resume.summary }} />
+        <section className="mb-6">
+          <h2 className="text-lg font-bold border-b border-resume-gray pb-2 mb-3 uppercase">Professional Summary</h2>
+          <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: resume.summary }} />
         </section>
       )}
       
       {resume.experience.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-base font-bold border-b border-resume-gray pb-1 mb-2 uppercase">Experience</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold border-b border-resume-gray pb-2 mb-3 uppercase">Experience</h2>
+          <div className="space-y-4">
             {resume.experience.map((exp) => (
-              <div key={exp.id} className="mb-2">
+              <div key={exp.id} className="mb-4">
                 <div className="flex justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{exp.title || 'Position Title'}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{exp.title || 'Position Title'}</h3>
+                  <div className="text-sm text-resume-gray">
                     {exp.startDate && exp.endDate
                       ? `${formatDisplayDate(exp.startDate)} - ${formatDisplayDate(exp.endDate)}`
                       : 'Present'}
                   </div>
                 </div>
-                <p className="font-semibold text-xs">{exp.company}{exp.location ? `, ${exp.location}` : ''}</p>
-                <div className="text-xs mt-1 prose max-w-none" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <p className="font-semibold text-sm">{exp.company}{exp.location ? `, ${exp.location}` : ''}</p>
+                <div className="text-sm mt-2 prose max-w-none" dangerouslySetInnerHTML={{ __html: exp.description }} />
               </div>
             ))}
           </div>
@@ -78,22 +77,22 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       )}
 
       {resume.projects.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-base font-bold border-b border-resume-gray pb-1 mb-2 uppercase">Projects</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold border-b border-resume-gray pb-2 mb-3 uppercase">Projects</h2>
+          <div className="space-y-4">
             {resume.projects.map((project) => (
-              <div key={project.id} className="mb-2">
+              <div key={project.id} className="mb-4">
                 <div className="flex justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{project.title}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{project.title}</h3>
+                  <div className="text-sm text-resume-gray">
                     {project.startDate && project.endDate
                       ? `${formatDisplayDate(project.startDate)} - ${formatDisplayDate(project.endDate)}`
                       : 'Present'}
                   </div>
                 </div>
-                {project.link && <p className="text-xs italic">{project.link}</p>}
-                <p className="text-xs">{project.technologies}</p>
-                <div className="text-xs mt-1 prose max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
+                {project.link && <p className="text-sm italic">{project.link}</p>}
+                <p className="text-sm">{project.technologies}</p>
+                <div className="text-sm mt-2 prose max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
               </div>
             ))}
           </div>
@@ -101,20 +100,20 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       )}
       
       {resume.education.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-base font-bold border-b border-resume-gray pb-1 mb-2 uppercase">Education</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold border-b border-resume-gray pb-2 mb-3 uppercase">Education</h2>
+          <div className="space-y-4">
             {resume.education.map((edu) => (
-              <div key={edu.id} className="mb-2">
+              <div key={edu.id} className="mb-4">
                 <div className="flex justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{edu.degree || 'Degree'}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{edu.degree || 'Degree'}</h3>
+                  <div className="text-sm text-resume-gray">
                     {edu.graduationDate ? formatDisplayDate(edu.graduationDate) : ''}
                   </div>
                 </div>
-                <p className="font-semibold text-xs">{edu.school}{edu.location ? `, ${edu.location}` : ''}</p>
+                <p className="font-semibold text-sm">{edu.school}{edu.location ? `, ${edu.location}` : ''}</p>
                 {edu.description && (
-                  <div className="text-xs mt-1 prose max-w-none" dangerouslySetInnerHTML={{ __html: edu.description }} />
+                  <div className="text-sm mt-2 prose max-w-none" dangerouslySetInnerHTML={{ __html: edu.description }} />
                 )}
               </div>
             ))}
@@ -124,10 +123,10 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       
       {resume.skills.length > 0 && (
         <section>
-          <h2 className="text-base font-bold border-b border-resume-gray pb-1 mb-2 uppercase">Skills</h2>
-          <div className="flex flex-wrap gap-1.5">
+          <h2 className="text-lg font-bold border-b border-resume-gray pb-2 mb-3 uppercase">Skills</h2>
+          <div className="flex flex-wrap gap-2">
             {resume.skills.map((skill) => (
-              <span key={skill.id} className="bg-resume-light-gray px-2 py-0.5 rounded-sm text-xs">
+              <span key={skill.id} className="bg-resume-light-gray px-3 py-1 rounded-sm text-sm">
                 {skill.name}
               </span>
             ))}
@@ -137,14 +136,14 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
     </div>
   );
 
-  // Minimalist template - with compact styling
+  // Minimalist template - restored original styling
   const MinimalistTemplate = () => (
-    <div className="bg-white text-black p-6 min-h-[1100px] max-w-[800px] mx-auto font-sans">
-      <header className="mb-5">
-        <h1 className="text-2xl font-bold mb-1">{resume.personalInfo.fullName || 'Your Name'}</h1>
-        <p className="text-base text-resume-gray">{resume.personalInfo.title || 'Professional Title'}</p>
+    <div className="bg-white text-black p-8 min-h-[1400px] max-w-[850px] mx-auto font-sans">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">{resume.personalInfo.fullName || 'Your Name'}</h1>
+        <p className="text-lg text-resume-gray">{resume.personalInfo.title || 'Professional Title'}</p>
         
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-2 text-xs text-resume-gray">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-3 text-sm text-resume-gray">
           {resume.personalInfo.email && <span>{resume.personalInfo.email}</span>}
           {resume.personalInfo.phone && <span>{resume.personalInfo.phone}</span>}
           {resume.personalInfo.location && <span>{resume.personalInfo.location}</span>}
@@ -154,28 +153,28 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       </header>
       
       {resume.summary && (
-        <section className="mb-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-resume-gray mb-2">Summary</h2>
-          <div className="text-xs prose max-w-none" dangerouslySetInnerHTML={{ __html: resume.summary }} />
+        <section className="mb-6">
+          <h2 className="text-base font-bold uppercase tracking-wider text-resume-gray mb-3">Summary</h2>
+          <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: resume.summary }} />
         </section>
       )}
       
       {resume.experience.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-resume-gray mb-2">Experience</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-base font-bold uppercase tracking-wider text-resume-gray mb-3">Experience</h2>
+          <div className="space-y-4">
             {resume.experience.map((exp) => (
-              <div key={exp.id} className="mb-3">
+              <div key={exp.id} className="mb-4">
                 <div className="flex flex-wrap justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{exp.title || 'Position Title'}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{exp.title || 'Position Title'}</h3>
+                  <div className="text-sm text-resume-gray">
                     {exp.startDate && exp.endDate
                       ? `${formatDisplayDate(exp.startDate)} - ${formatDisplayDate(exp.endDate)}`
                       : 'Present'}
                   </div>
                 </div>
-                <p className="text-xs text-resume-gray mb-1">{exp.company}{exp.location ? `, ${exp.location}` : ''}</p>
-                <div className="text-xs prose max-w-none" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <p className="text-sm text-resume-gray mb-2">{exp.company}{exp.location ? `, ${exp.location}` : ''}</p>
+                <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: exp.description }} />
               </div>
             ))}
           </div>
@@ -183,22 +182,22 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       )}
 
       {resume.projects.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-resume-gray mb-2">Projects</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-base font-bold uppercase tracking-wider text-resume-gray mb-3">Projects</h2>
+          <div className="space-y-4">
             {resume.projects.map((project) => (
-              <div key={project.id} className="mb-3">
+              <div key={project.id} className="mb-4">
                 <div className="flex flex-wrap justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{project.title}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{project.title}</h3>
+                  <div className="text-sm text-resume-gray">
                     {project.startDate && project.endDate
                       ? `${formatDisplayDate(project.startDate)} - ${formatDisplayDate(project.endDate)}`
                       : 'Present'}
                   </div>
                 </div>
-                {project.link && <p className="text-xs text-resume-blue">{project.link}</p>}
-                <p className="text-xs italic text-resume-gray mb-1">{project.technologies}</p>
-                <div className="text-xs prose max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
+                {project.link && <p className="text-sm text-resume-blue">{project.link}</p>}
+                <p className="text-sm italic text-resume-gray mb-2">{project.technologies}</p>
+                <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: project.description }} />
               </div>
             ))}
           </div>
@@ -206,20 +205,20 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       )}
       
       {resume.education.length > 0 && (
-        <section className="mb-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-resume-gray mb-2">Education</h2>
-          <div className="space-y-3">
+        <section className="mb-6">
+          <h2 className="text-base font-bold uppercase tracking-wider text-resume-gray mb-3">Education</h2>
+          <div className="space-y-4">
             {resume.education.map((edu) => (
-              <div key={edu.id} className="mb-3">
+              <div key={edu.id} className="mb-4">
                 <div className="flex flex-wrap justify-between items-baseline">
-                  <h3 className="font-bold text-sm">{edu.degree || 'Degree'}</h3>
-                  <div className="text-xs text-resume-gray">
+                  <h3 className="font-bold text-base">{edu.degree || 'Degree'}</h3>
+                  <div className="text-sm text-resume-gray">
                     {edu.graduationDate ? formatDisplayDate(edu.graduationDate) : ''}
                   </div>
                 </div>
-                <p className="text-xs text-resume-gray mb-1">{edu.school}{edu.location ? `, ${edu.location}` : ''}</p>
+                <p className="text-sm text-resume-gray mb-2">{edu.school}{edu.location ? `, ${edu.location}` : ''}</p>
                 {edu.description && (
-                  <div className="text-xs prose max-w-none" dangerouslySetInnerHTML={{ __html: edu.description }} />
+                  <div className="text-sm prose max-w-none" dangerouslySetInnerHTML={{ __html: edu.description }} />
                 )}
               </div>
             ))}
@@ -229,10 +228,10 @@ const ResumeTemplates: React.FC<ResumeTemplateProps> = ({ componentRef }) => {
       
       {resume.skills.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-resume-gray mb-2">Skills</h2>
-          <div className="flex flex-wrap gap-x-2 gap-y-1">
+          <h2 className="text-base font-bold uppercase tracking-wider text-resume-gray mb-3">Skills</h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
             {resume.skills.map((skill, index) => (
-              <span key={skill.id} className="text-xs">
+              <span key={skill.id} className="text-sm">
                 {skill.name}{index < resume.skills.length - 1 ? " • " : ""}
               </span>
             ))}

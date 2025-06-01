@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, Upload, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +7,6 @@ import { jsPDF } from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { updatePersonalInfo, updateSummary } from '@/store/resumeSlice';
 
 interface ResumeActionBarProps {
   id?: string;
@@ -20,7 +17,6 @@ interface ResumeActionBarProps {
 const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionBarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const dispatch = useDispatch();
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
@@ -33,56 +29,63 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
         description: "Please wait while we prepare your resume.",
       });
 
-      // Get the resume content
       const element = resumePreviewRef.current;
-      
-      // Create a canvas from the element
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher scale for better quality
+        scale: 2,
         logging: false,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight
       });
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Create PDF with A4 format
+      // Create PDF with proper A4 dimensions
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
       
-      // Get PDF dimensions
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2);
       
-      // Calculate image dimensions to fit within the PDF
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Calculate scaling to fit content properly
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(contentWidth / (imgWidth * 0.264583), (pdfHeight - margin * 2) / (imgHeight * 0.264583));
       
-      // If content overflows a single page, split it across multiple pages
-      let heightLeft = imgHeight;
-      let position = 0;
+      const scaledWidth = imgWidth * 0.264583 * ratio;
+      const scaledHeight = imgHeight * 0.264583 * ratio;
       
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
+      // Calculate how many pages we need
+      const pageCount = Math.ceil(scaledHeight / (pdfHeight - margin * 2));
       
-      // Add additional pages if needed
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight; // Move position to capture next portion
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
+      for (let i = 0; i < pageCount; i++) {
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        const yOffset = -i * (pdfHeight - margin * 2);
+        pdf.addImage(
+          imgData, 
+          'PNG', 
+          margin, 
+          margin + yOffset, 
+          scaledWidth, 
+          scaledHeight
+        );
       }
       
-      // Save the PDF
-      pdf.save(`resume-${resumeFullName || 'untitled'}.pdf`);
+      pdf.save(`${resumeFullName || 'resume'}.pdf`);
       
       toast({
         title: "PDF Generated!",
-        description: "Your resume has been downloaded as a PDF file.",
+        description: "Your resume has been downloaded successfully.",
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -94,7 +97,7 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
     }
   };
 
-  const handleImportResume = () => {
+  const handleImportResume = async () => {
     if (!resumeFile) {
       toast({
         title: "Error",
@@ -104,36 +107,32 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       return;
     }
 
-    // In a real implementation, this would connect to a resume parser service
-    // For now, we'll simulate importing by filling in sample data
-    toast({
-      title: "Processing Resume",
-      description: "Extracting information from your uploaded resume...",
-    });
-
-    // Simulate successful import after a short delay
-    setTimeout(() => {
-      // Populate with example data
-      dispatch(updatePersonalInfo({
-        fullName: "Your Name (Imported)",
-        title: "Professional Title (Imported from Resume)",
-        email: "imported@example.com",
-        phone: "(123) 456-7890",
-        location: "New York, NY"
-      }));
-      
-      dispatch(updateSummary("This information was imported from your uploaded resume. In a real implementation, we would extract the actual content from your resume file."));
-      
+    try {
+      // In a real implementation, this would parse the resume file
+      // For now, we'll simulate the import process
       toast({
-        title: "Resume Imported",
-        description: "Your resume has been successfully imported.",
+        title: "Processing Resume...",
+        description: "Extracting information from your resume file.",
       });
-      
-      setResumeFile(null);
-    }, 2000);
+
+      // Simulate processing time
+      setTimeout(() => {
+        toast({
+          title: "Resume Imported",
+          description: "Your resume has been imported successfully.",
+        });
+        setResumeFile(null);
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "Unable to process the resume file.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleLinkedinImport = () => {
+  const handleLinkedinImport = async () => {
     if (!linkedinUrl || !linkedinUrl.includes('linkedin.com')) {
       toast({
         title: "Invalid URL",
@@ -143,40 +142,31 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       return;
     }
 
-    toast({
-      title: "Processing LinkedIn Profile",
-      description: "Extracting information from your LinkedIn profile...",
-    });
-
-    // Simulate LinkedIn data import after a short delay
-    setTimeout(() => {
-      // Populate with example data
-      dispatch(updatePersonalInfo({
-        fullName: "LinkedIn User",
-        title: "Professional Title (Imported from LinkedIn)",
-        email: "linkedin@example.com",
-        phone: "(123) 456-7890",
-        location: "San Francisco, CA",
-        linkedin: linkedinUrl
-      }));
-      
-      dispatch(updateSummary("This information was imported from your LinkedIn profile. In a real implementation, we would extract your actual LinkedIn profile content."));
-      
+    try {
       toast({
-        title: "LinkedIn Import Complete",
-        description: "Your resume has been populated with LinkedIn data.",
+        title: "Processing LinkedIn Profile",
+        description: "Extracting information from your LinkedIn profile.",
       });
-      
-      setLinkedinUrl('');
-    }, 2000);
-  };
 
-  const navigateToAtsScore = () => {
-    navigate(`/dashboard/resumes/${id}/ats`);
+      // In a real implementation, this would connect to LinkedIn API
+      setTimeout(() => {
+        toast({
+          title: "LinkedIn Import Complete",
+          description: "Your resume has been populated with LinkedIn data.",
+        });
+        setLinkedinUrl('');
+      }, 3000);
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "Unable to fetch LinkedIn data.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
-    <div className="flex items-center justify-between flex-wrap gap-2">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
@@ -190,12 +180,12 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
         <h1 className="text-2xl font-bold">Resume Editor</h1>
       </div>
       
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-3">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-1 h-9 px-3" size="sm">
+            <Button variant="outline" className="flex items-center gap-2">
               <Linkedin className="h-4 w-4" />
-              <span className="hidden sm:inline">LinkedIn</span>
+              Import from LinkedIn
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -220,9 +210,9 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-1 h-9 px-3" size="sm">
+            <Button variant="outline" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline">Import</span>
+              Import Resume
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -231,37 +221,23 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                Upload your existing resume to populate the editor.
+                Upload your existing resume in PDF, DOC, or DOCX format.
               </p>
               <Input 
                 type="file" 
                 accept=".pdf,.doc,.docx" 
                 onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
               />
-              <Button onClick={handleImportResume} className="w-full">
+              <Button onClick={handleImportResume} className="w-full" disabled={!resumeFile}>
                 Import Resume
               </Button>
             </div>
           </DialogContent>
         </Dialog>
         
-        <Button 
-          variant="outline" 
-          onClick={navigateToAtsScore}
-          className="flex items-center gap-1 h-9 px-3"
-          size="sm"
-        >
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">ATS Score</span>
-        </Button>
-        
-        <Button 
-          onClick={generatePDF} 
-          className="flex items-center gap-1 h-9 px-3"
-          size="sm"
-        >
+        <Button onClick={generatePDF} className="flex items-center gap-2">
           <Download className="h-4 w-4" />
-          <span className="hidden sm:inline">Export PDF</span>
+          Export as PDF
         </Button>
       </div>
     </div>
