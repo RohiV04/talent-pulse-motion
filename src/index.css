@@ -43,6 +43,14 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 262 78% 74%;
+
+    /* Resume specific colors */
+    --resume-gray: 107 114 128;
+    --resume-dark-gray: 55 65 81;
+    --resume-light-gray: 243 244 246;
+    --resume-blue: 59 130 246;
+    --resume-purple: 168 85 247;
+    --resume-dark-purple: 91 33 182;
   }
 
   .dark {
@@ -100,5 +108,54 @@
   
   .hover-scale {
     @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  /* Resume specific utility classes */
+  .text-resume-gray {
+    color: rgb(var(--resume-gray));
+  }
+  
+  .text-resume-dark-gray {
+    color: rgb(var(--resume-dark-gray));
+  }
+  
+  .bg-resume-light-gray {
+    background-color: rgb(var(--resume-light-gray));
+  }
+  
+  .bg-resume-gray {
+    background-color: rgb(var(--resume-gray));
+  }
+  
+  .bg-resume-dark-gray {
+    background-color: rgb(var(--resume-dark-gray));
+  }
+  
+  .border-resume-gray {
+    border-color: rgb(var(--resume-gray));
+  }
+  
+  .text-resume-blue {
+    color: rgb(var(--resume-blue));
+  }
+  
+  .text-resume-purple {
+    color: rgb(var(--resume-purple));
+  }
+  
+  .text-resume-dark-purple {
+    color: rgb(var(--resume-dark-purple));
+  }
+  
+  .bg-resume-purple {
+    background-color: rgb(var(--resume-purple));
+  }
+  
+  .bg-resume-dark-purple {
+    background-color: rgb(var(--resume-dark-purple));
+  }
+  
+  .border-resume-purple {
+    border-color: rgb(var(--resume-purple));
   }
 }

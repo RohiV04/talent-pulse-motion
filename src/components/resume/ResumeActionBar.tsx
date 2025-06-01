@@ -30,6 +30,14 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       });
 
       const element = resumePreviewRef.current;
+      
+      // Temporarily remove the scale transformation for PDF generation
+      const originalTransform = element.style.transform;
+      element.style.transform = 'none';
+      
+      // Wait for the DOM to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         logging: false,
@@ -37,12 +45,16 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
         allowTaint: true,
         backgroundColor: '#ffffff',
         width: element.scrollWidth,
-        height: element.scrollHeight
+        height: element.scrollHeight,
+        removeContainer: true
       });
+      
+      // Restore the original transform
+      element.style.transform = originalTransform;
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Create PDF with proper A4 dimensions
+      // Create PDF with proper A4 dimensions (210 x 297 mm)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -53,32 +65,58 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       const pdfHeight = pdf.internal.pageSize.getHeight();
       const margin = 10;
       const contentWidth = pdfWidth - (margin * 2);
+      const contentHeight = pdfHeight - (margin * 2);
       
-      // Calculate scaling to fit content properly
+      // Calculate dimensions to fit the content properly
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(contentWidth / (imgWidth * 0.264583), (pdfHeight - margin * 2) / (imgHeight * 0.264583));
       
-      const scaledWidth = imgWidth * 0.264583 * ratio;
-      const scaledHeight = imgHeight * 0.264583 * ratio;
+      // Convert pixels to mm (approximately 3.78 pixels per mm at 96 DPI)
+      const imgWidthMM = imgWidth / 3.78;
+      const imgHeightMM = imgHeight / 3.78;
       
-      // Calculate how many pages we need
-      const pageCount = Math.ceil(scaledHeight / (pdfHeight - margin * 2));
+      // Calculate scale to fit within page margins
+      const scaleX = contentWidth / imgWidthMM;
+      const scaleY = contentHeight / imgHeightMM;
+      const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
       
-      for (let i = 0; i < pageCount; i++) {
-        if (i > 0) {
-          pdf.addPage();
-        }
+      const finalWidth = imgWidthMM * scale;
+      const finalHeight = imgHeightMM * scale;
+      
+      // Center the content on the page
+      const xPos = (pdfWidth - finalWidth) / 2;
+      const yPos = margin;
+      
+      // Add the image to PDF
+      pdf.addImage(
+        imgData, 
+        'PNG', 
+        xPos, 
+        yPos, 
+        finalWidth, 
+        finalHeight,
+        undefined,
+        'FAST'
+      );
+      
+      // If content is too tall, handle multiple pages
+      if (finalHeight > contentHeight) {
+        const pagesNeeded = Math.ceil(finalHeight / contentHeight);
         
-        const yOffset = -i * (pdfHeight - margin * 2);
-        pdf.addImage(
-          imgData, 
-          'PNG', 
-          margin, 
-          margin + yOffset, 
-          scaledWidth, 
-          scaledHeight
-        );
+        for (let i = 1; i < pagesNeeded; i++) {
+          pdf.addPage();
+          const yOffset = -i * contentHeight;
+          pdf.addImage(
+            imgData, 
+            'PNG', 
+            xPos, 
+            yPos + yOffset, 
+            finalWidth, 
+            finalHeight,
+            undefined,
+            'FAST'
+          );
+        }
       }
       
       pdf.save(`${resumeFullName || 'resume'}.pdf`);
