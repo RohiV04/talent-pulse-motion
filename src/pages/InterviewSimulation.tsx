@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, Video, Settings, User, MessageSquare, Headphones, HelpCircle, PauseCircle, ChevronRight } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
+import { LiveKitRoom, VideoConference, useRoomContext, VideoTrack, AudioTrack, ParticipantTile } from "@livekit/components-react";
 
 interface InterviewQuestion {
   id: string;
@@ -24,12 +24,40 @@ interface Skill {
   color: string;
 }
 
+const LIVEKIT_TOKEN_URL = "http://127.0.0.1:5000/livekit/token"; // Replace with your backend endpoint
+
+function AutoEnableMedia() {
+  const room = useRoomContext();
+  useEffect(() => {
+    if (room) {
+      // room.localParticipant.setCameraEnabled(true);
+      // room.localParticipant.setMicrophoneEnabled(true);
+      // room.localParticipant.setScreenShareEnabled(true);
+    }
+  }, [room]);
+  return null;
+}
+
 const InterviewSimulation = () => {
   const { toast } = useToast();
   const { user } = useUser();
   const [isRecording, setIsRecording] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState(0);
   const [interviewMode, setInterviewMode] = useState<"preparation" | "simulation" | "results">("preparation");
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  const [lkToken, setLkToken] = useState<string | null>(null);
+  const [lkWsUrl, setLkWsUrl] = useState<string | null>(null);
+  const [lkLoading, setLkLoading] = useState(false);
 
   const questions: InterviewQuestion[] = [
     {
@@ -119,6 +147,96 @@ const InterviewSimulation = () => {
     }
   };
 
+  // Camera test logic
+  const handleTestCamera = async () => {
+    setCameraError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err: unknown) {
+      setCameraError(err instanceof Error ? err.message : "Unable to access camera. Please check your permissions.");
+    }
+  };
+
+  // Audio test logic
+  const handleTestMicrophone = async () => {
+    setAudioError(null);
+    setAudioLevel(0);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setAudioStream(stream);
+      // Setup audio context and analyser
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+      const audioContext = new ((window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext) as typeof AudioContext)();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateLevel = () => {
+        analyser.getByteTimeDomainData(dataArray);
+        // Calculate RMS (root mean square) for volume
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const val = (dataArray[i] - 128) / 128;
+          sum += val * val;
+        }
+        const rms = Math.sqrt(sum / dataArray.length);
+        setAudioLevel(rms);
+        animationFrameRef.current = requestAnimationFrame(updateLevel);
+      };
+      updateLevel();
+    } catch (err: unknown) {
+      setAudioError(err instanceof Error ? err.message : "Unable to access microphone. Please check your permissions.");
+    }
+  };
+
+  // Clean up camera and audio streams on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [cameraStream, audioStream]);
+
+  // Fetch LiveKit token and wsUrl when entering simulation step
+  useEffect(() => {
+    if (interviewMode === "simulation" && user) {
+      setLkLoading(true);
+      fetch(LIVEKIT_TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identity: user.id,
+          room: "my-room"
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          setLkToken(data.token);
+          setLkWsUrl(data.ws_url);
+        })
+        .finally(() => setLkLoading(false));
+    }
+  }, [interviewMode, user]);
+
   const renderPreparation = () => (
     <div className="space-y-8 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -132,14 +250,24 @@ const InterviewSimulation = () => {
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-secondary/30 rounded-lg flex items-center justify-center overflow-hidden">
-              <div className="text-center">
-                <Video className="h-8 w-8 mx-auto text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mt-2">Camera preview will appear here</p>
-                <Button size="sm" variant="outline" className="mt-4">
-                  Test Camera
-                </Button>
-              </div>
+              {cameraStream ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="h-full w-full object-cover rounded-lg"
+                />
+              ) : (
+                <div className="text-center">
+                  <Video className="h-8 w-8 mx-auto text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground mt-2">Camera preview will appear here</p>
+                </div>
+              )}
             </div>
+            <Button size="sm" variant="outline" className="mt-4" onClick={handleTestCamera}>
+              Test Camera
+            </Button>
+            {cameraError && <p className="text-red-500 text-xs mt-2">{cameraError}</p>}
           </CardContent>
         </Card>
 
@@ -154,12 +282,21 @@ const InterviewSimulation = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="h-32 bg-secondary/30 rounded-lg flex items-center justify-center">
-                <div className="text-center">
+                <div className="text-center w-full">
                   <Mic className="h-8 w-8 mx-auto text-muted-foreground" />
                   <p className="text-sm text-muted-foreground mt-2">Speak to test your microphone</p>
+                  <div className="flex justify-center mt-4">
+                    <div className="w-40 h-4 bg-muted rounded-full overflow-hidden relative">
+                      <div
+                        className="h-4 bg-primary transition-all duration-200"
+                        style={{ width: `${Math.min(audioLevel * 100 * 2, 100)}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" className="w-full">Test Microphone</Button>
+              <Button variant="outline" className="w-full" onClick={handleTestMicrophone}>Test Microphone</Button>
+              {audioError && <p className="text-red-500 text-xs mt-2">{audioError}</p>}
             </div>
           </CardContent>
         </Card>
@@ -253,6 +390,17 @@ const InterviewSimulation = () => {
   const renderSimulation = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
       <div className="md:col-span-2 space-y-6">
+        {/* LiveKit Video Conference */}
+        {lkLoading ? (
+          <div className="flex justify-center items-center h-64">Loading video conference...</div>
+        ) : lkToken && lkWsUrl ? (
+          <div className="mb-6">
+            <LiveKitRoom token={lkToken} serverUrl={lkWsUrl} connect={true}>
+              <AutoEnableMedia />
+              <VideoConference />
+            </LiveKitRoom>
+          </div>
+        ) : null}
         <Card>
           <CardContent className="p-6">
             <div className="aspect-video bg-muted rounded-lg overflow-hidden flex items-center justify-center">
