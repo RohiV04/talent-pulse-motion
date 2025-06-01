@@ -16,7 +16,8 @@ import {
   RoomAudioRenderer,
   useLocalParticipant,
   useTracks,
-  ParticipantTile,
+  TrackReferenceOrPlaceholder,
+  VideoTrack,
   Chat,
   GridLayout,
   useRoomContext
@@ -65,18 +66,15 @@ const VideoConferenceRoom = ({ roomData }: VideoConferenceRoomProps) => {
     }
   };
 
-  // Convert participants Map to Array for ParticipantLoop
-  const participantsArray = room ? Array.from(room.remoteParticipants.values()) : [];
-
   return (
     <div className="flex flex-col h-full bg-gray-900">
       {/* Main video area */}
       <div className="flex-1 relative">
         <GridLayout tracks={tracks} style={{ height: 'calc(100vh - 200px)' }}>
-          {participantsArray.map((participant) => (
-            <ParticipantTile
-              key={participant.sid}
-              participant={participant}
+          {tracks.map((track: TrackReferenceOrPlaceholder) => (
+            <VideoTrack
+              key={track.participant.sid}
+              trackRef={track}
               className="bg-gray-800 rounded-lg"
             />
           ))}
