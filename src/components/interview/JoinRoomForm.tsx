@@ -6,9 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@clerk/clerk-react";
 
-// API endpoint for getting LiveKit tokens
-const LIVEKIT_API_URL = "http://localhost:3001/api/livekit";
-
 interface RoomData {
   token: string;
   wsUrl: string;
@@ -23,13 +20,15 @@ const JoinRoomForm = ({ onJoinRoom }: JoinRoomFormProps) => {
   const { user } = useUser();
   const { toast } = useToast();
   const [roomName, setRoomName] = useState('interview-room');
+  const [wsUrl, setWsUrl] = useState('wss://your-livekit-server.com');
+  const [token, setToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoinRoom = async () => {
-    if (!user || !roomName.trim()) {
+    if (!user || !roomName.trim() || !wsUrl.trim() || !token.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a room name",
+        description: "Please fill in all fields",
         variant: "destructive"
       });
       return;
@@ -37,27 +36,10 @@ const JoinRoomForm = ({ onJoinRoom }: JoinRoomFormProps) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(LIVEKIT_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          identity: user.id,
-          name: user.fullName || user.firstName || 'User',
-          room: roomName,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get room token');
-      }
-
-      const data = await response.json();
-      
+      // For now, use manual inputs - later this will be replaced with API call
       onJoinRoom({
-        token: data.token,
-        wsUrl: data.wsUrl,
+        token: token,
+        wsUrl: wsUrl,
         roomName: roomName
       });
 
@@ -83,7 +65,7 @@ const JoinRoomForm = ({ onJoinRoom }: JoinRoomFormProps) => {
         <CardContent className="p-6">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-2">Join Interview</h2>
-            <p className="text-gray-600">Enter the interview room to start your AI-powered interview session</p>
+            <p className="text-gray-600">Enter the interview room details to start your AI-powered interview session</p>
           </div>
           
           <div className="space-y-4">
@@ -96,10 +78,31 @@ const JoinRoomForm = ({ onJoinRoom }: JoinRoomFormProps) => {
                 className="w-full"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">WebSocket URL</label>
+              <Input
+                value={wsUrl}
+                onChange={(e) => setWsUrl(e.target.value)}
+                placeholder="wss://your-livekit-server.com"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Access Token</label>
+              <Input
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Enter LiveKit access token"
+                className="w-full"
+                type="password"
+              />
+            </div>
             
             <Button
               onClick={handleJoinRoom}
-              disabled={isLoading || !roomName.trim()}
+              disabled={isLoading || !roomName.trim() || !wsUrl.trim() || !token.trim()}
               className="w-full"
               size="lg"
             >

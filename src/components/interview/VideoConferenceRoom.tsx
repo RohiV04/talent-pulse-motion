@@ -16,11 +16,11 @@ import {
   RoomAudioRenderer,
   useLocalParticipant,
   useTracks,
-  TrackReferenceOrPlaceholder,
   VideoTrack,
   Chat,
   GridLayout,
-  useRoomContext
+  useRoomContext,
+  ParticipantTile
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -66,21 +66,12 @@ const VideoConferenceRoom = ({ roomData }: VideoConferenceRoomProps) => {
     }
   };
 
-  // Filter out placeholder tracks as VideoTrack expects TrackReference, not TrackReferenceOrPlaceholder
-  const validTracks = tracks.filter(track => track.publication !== undefined);
-
   return (
     <div className="flex flex-col h-full bg-gray-900">
       {/* Main video area */}
       <div className="flex-1 relative">
         <GridLayout tracks={tracks} style={{ height: 'calc(100vh - 200px)' }}>
-          {validTracks.map((track) => (
-            <VideoTrack
-              key={track.participant.sid}
-              trackRef={track}
-              className="bg-gray-800 rounded-lg"
-            />
-          ))}
+          <ParticipantTile />
         </GridLayout>
         
         {/* AI Agent placeholder */}
