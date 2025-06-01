@@ -52,17 +52,10 @@ const ResumeEditor = () => {
                 PDF export will be properly formatted
               </span>
             </div>
-             <div className="w-full overflow-hidden">
-              <div 
-                className="transform-gpu transition-transform duration-200"
-                style={{
-                  transform: 'scale(0.7)',
-                  transformOrigin: 'top left',
-                  width: '142.86%', // Compensate for 0.7 scale (1/0.7)
-                }}
-              >
+            
+            {/* Scale down the preview for better visibility */}
+            <div className="transform scale-75 origin-top-left w-[133.33%]">
               <ResumeTemplates componentRef={resumePreviewRef} />
-            </div>
             </div>
           </div>
         </div>
