@@ -66,12 +66,15 @@ const VideoConferenceRoom = ({ roomData }: VideoConferenceRoomProps) => {
     }
   };
 
+  // Filter out placeholder tracks as VideoTrack expects TrackReference, not TrackReferenceOrPlaceholder
+  const validTracks = tracks.filter(track => track.publication !== undefined);
+
   return (
     <div className="flex flex-col h-full bg-gray-900">
       {/* Main video area */}
       <div className="flex-1 relative">
         <GridLayout tracks={tracks} style={{ height: 'calc(100vh - 200px)' }}>
-          {tracks.map((track: TrackReferenceOrPlaceholder) => (
+          {validTracks.map((track) => (
             <VideoTrack
               key={track.participant.sid}
               trackRef={track}
