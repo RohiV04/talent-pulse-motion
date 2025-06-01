@@ -45,14 +45,13 @@ const ResumeEditor = () => {
         
         {/* Resume Preview */}
         <div className="lg:w-1/2">
-          <div className="bg-white rounded-xl border shadow-sm p-4 min-h-[600px] max-h-[800px] overflow-y-auto">
-            <h2 className="text-lg font-semibold sticky top-0 bg-white p-2 rounded z-10 flex justify-between items-center border-b mb-4">
-              <span>Live Preview</span>
+          <div className="bg-white rounded-xl border shadow-sm p-6 min-h-[700px] max-h-[900px] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-2 rounded z-10 flex justify-between items-center border-b mb-4">
+              <h2 className="text-lg font-semibold">Live Preview</h2>
               <span className="text-xs text-muted-foreground">
                 PDF export will be properly formatted
               </span>
-            </h2>
-            
+            </div>
              <div className="w-full overflow-hidden">
               <div 
                 className="transform-gpu transition-transform duration-200"

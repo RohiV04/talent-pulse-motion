@@ -26,73 +26,28 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
   };
 
   const generatePDF = async () => {
-    if (!resumePreviewRef.current) {
-      showToast("Error", "Resume preview not found");
-      return;
-    }
-    
-    setIsGenerating(true);
+    if (!resumePreviewRef.current) return;
     
     try {
-      showToast("Generating PDF...", "Please wait while we prepare your resume.");
+      toast({
+        title: "Generating PDF...",
+        description: "Please wait while we prepare your resume.",
+      });
 
-      // Create a hidden div with the resume at full scale for PDF generation
-      const originalElement = resumePreviewRef.current;
-      const clonedElement = originalElement.cloneNode(true) as HTMLElement;
-      
-      // Create a temporary container
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '850px'; // Fixed width for consistency
-      tempContainer.style.backgroundColor = '#ffffff';
-      tempContainer.style.fontFamily = 'serif';
-      tempContainer.style.fontSize = '14px';
-      tempContainer.style.lineHeight = '1.4';
-      tempContainer.style.color = '#000000';
-      
-      // Remove any scaling transforms
-      clonedElement.style.transform = 'none';
-      clonedElement.style.scale = '1';
-      clonedElement.className = clonedElement.className.replace(/scale-\[[^\]]*\]/g, '');
-      
-      tempContainer.appendChild(clonedElement);
-      document.body.appendChild(tempContainer);
-
-      // Wait for fonts and styles to load
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Use html2canvas with better options
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const canvas = await html2canvas(clonedElement, {
-        scale: 2, // High quality
+      const element = resumePreviewRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: 850,
-        height: clonedElement.scrollHeight,
-        windowWidth: 850,
-        windowHeight: clonedElement.scrollHeight,
-        onclone: (clonedDoc) => {
-          // Ensure proper font rendering in cloned document
-          const clonedBody = clonedDoc.body;
-          clonedBody.style.fontFamily = 'serif';
-          clonedBody.style.fontSize = '14px';
-          clonedBody.style.lineHeight = '1.4';
-          clonedBody.style.color = '#000000';
-        }
+        width: element.scrollWidth,
+        height: element.scrollHeight
       });
-      
-      // Clean up temporary element
-      document.body.removeChild(tempContainer);
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       
       // Create PDF with proper A4 dimensions
-      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -101,76 +56,33 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15; // Reasonable margin
+      const margin = 10;
+      const contentWidth = pdfWidth - (margin * 2);
       
-      // Calculate dimensions to fit the page
-      const maxWidth = pdfWidth - (margin * 2);
-      const maxHeight = pdfHeight - (margin * 2);
+      // Calculate scaling to fit content properly
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(contentWidth / (imgWidth * 0.264583), (pdfHeight - margin * 2) / (imgHeight * 0.264583));
       
-      // Get original canvas dimensions
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
+      const scaledWidth = imgWidth * 0.264583 * ratio;
+      const scaledHeight = imgHeight * 0.264583 * ratio;
       
-      // Calculate scale to fit within page
-      const scaleX = maxWidth / (canvasWidth * 0.264583); // Convert px to mm
-      const scaleY = maxHeight / (canvasHeight * 0.264583);
-      const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
+      // Calculate how many pages we need
+      const pageCount = Math.ceil(scaledHeight / (pdfHeight - margin * 2));
       
-      const finalWidth = (canvasWidth * 0.264583) * scale;
-      const finalHeight = (canvasHeight * 0.264583) * scale;
-      
-      // Center the content
-      const xOffset = margin + (maxWidth - finalWidth) / 2;
-      const yOffset = margin;
-      
-      // Check if we need multiple pages
-      if (finalHeight > maxHeight) {
-        // Multi-page handling
-        let currentY = 0;
-        let pageNumber = 0;
-        
-        while (currentY < canvasHeight) {
-          if (pageNumber > 0) {
-            pdf.addPage();
-          }
-          
-          const remainingHeight = canvasHeight - currentY;
-          const pageCanvasHeight = Math.min(remainingHeight, maxHeight / (0.264583 * scale));
-          
-          // Create a temporary canvas for this page
-          const pageCanvas = document.createElement('canvas');
-          const pageCtx = pageCanvas.getContext('2d');
-          pageCanvas.width = canvasWidth;
-          pageCanvas.height = pageCanvasHeight;
-          
-          if (pageCtx) {
-            pageCtx.fillStyle = '#ffffff';
-            pageCtx.fillRect(0, 0, canvasWidth, pageCanvasHeight);
-            pageCtx.drawImage(canvas, 0, -currentY);
-            
-            const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
-            pdf.addImage(
-              pageImgData,
-              'PNG',
-              xOffset,
-              yOffset,
-              finalWidth,
-              (pageCanvasHeight * 0.264583) * scale
-            );
-          }
-          
-          currentY += pageCanvasHeight;
-          pageNumber++;
+      for (let i = 0; i < pageCount; i++) {
+        if (i > 0) {
+          pdf.addPage();
         }
-      } else {
-        // Single page
+        
+        const yOffset = -i * (pdfHeight - margin * 2);
         pdf.addImage(
-          imgData,
-          'PNG',
-          xOffset,
-          yOffset,
-          finalWidth,
-          finalHeight
+          imgData, 
+          'PNG', 
+          margin, 
+          margin + yOffset, 
+          scaledWidth, 
+          scaledHeight
         );
       }
       
