@@ -19,8 +19,7 @@ import {
   ParticipantTile,
   Chat,
   GridLayout,
-  ParticipantLoop,
-  useLiveKitRoom
+  useRoomContext
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
@@ -39,7 +38,7 @@ const VideoConferenceRoom = ({ roomData }: VideoConferenceRoomProps) => {
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   const [showChat, setShowChat] = useState(false);
   
-  const room = useLiveKitRoom();
+  const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
   
   const tracks = useTracks(
@@ -61,26 +60,26 @@ const VideoConferenceRoom = ({ roomData }: VideoConferenceRoomProps) => {
   };
 
   const handleEndCall = () => {
-    if (room?.room) {
-      room.room.disconnect();
+    if (room) {
+      room.disconnect();
     }
   };
+
+  // Convert participants Map to Array for ParticipantLoop
+  const participantsArray = room ? Array.from(room.remoteParticipants.values()) : [];
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
       {/* Main video area */}
       <div className="flex-1 relative">
         <GridLayout tracks={tracks} style={{ height: 'calc(100vh - 200px)' }}>
-          <ParticipantLoop participants={room?.room?.remoteParticipants || new Map()}>
-            {(participant) => (
-              <ParticipantTile
-                key={participant.sid}
-                track={participant.videoTrack}
-                participant={participant}
-                className="bg-gray-800 rounded-lg"
-              />
-            )}
-          </ParticipantLoop>
+          {participantsArray.map((participant) => (
+            <ParticipantTile
+              key={participant.sid}
+              participant={participant}
+              className="bg-gray-800 rounded-lg"
+            />
+          ))}
         </GridLayout>
         
         {/* AI Agent placeholder */}
