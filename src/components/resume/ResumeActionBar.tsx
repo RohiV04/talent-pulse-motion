@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useResumeImport } from '@/hooks/useResumeImport';
 
 interface ResumeActionBarProps {
   id?: string;
@@ -17,23 +18,26 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const showToast = (title: string, description: string, variant = 'default') => {
-    // Simple toast replacement since we don't have the hook
-    console.log(`${title}: ${description}`);
-    alert(`${title}: ${description}`);
-  };
+  const { toast } = useToast();
+  const { importResume, isImporting } = useResumeImport();
 
   const generatePDF = async () => {
     if (!resumePreviewRef.current) {
-      showToast("Error", "Resume preview not found");
+      toast({
+        title: "Error",
+        description: "Resume preview not found",
+        variant: "destructive"
+      });
       return;
     }
     
     setIsGenerating(true);
     
     try {
-      showToast("Generating PDF...", "Please wait while we prepare your resume.");
+      toast({
+        title: "Generating PDF...",
+        description: "Please wait while we prepare your resume.",
+      });
 
       // Create a hidden div with the resume at full scale for PDF generation
       const originalElement = resumePreviewRef.current;
@@ -177,11 +181,18 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
       const fileName = `${resumeFullName ? resumeFullName.replace(/[^a-zA-Z0-9]/g, '_') : 'resume'}.pdf`;
       pdf.save(fileName);
       
-      showToast("PDF Generated!", "Your resume has been downloaded successfully.");
+      toast({
+        title: "PDF Generated!",
+        description: "Your resume has been downloaded successfully.",
+      });
       
     } catch (error) {
       console.error('Error generating PDF:', error);
-      showToast("Error", "Could not generate PDF. Please try again.", "destructive");
+      toast({
+        title: "Error",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -189,43 +200,51 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
 
   const handleImportResume = async () => {
     if (!resumeFile) {
-      showToast("Error", "Please select a file to import.", "destructive");
+      toast({
+        title: "Error",
+        description: "Please select a file to import.",
+        variant: "destructive"
+      });
       return;
     }
 
-    try {
-      showToast("Processing Resume...", "Extracting information from your resume file.");
-
-      // Simulate processing time
-      setTimeout(() => {
-        showToast("Resume Imported", "Your resume has been imported successfully.");
-        setResumeFile(null);
-      }, 2000);
-    } catch (error) {
-      showToast("Import Failed", "Unable to process the resume file.", "destructive");
-    }
+    await importResume(resumeFile);
+    setResumeFile(null);
   };
 
   const handleLinkedinImport = async () => {
     if (!linkedinUrl || !linkedinUrl.includes('linkedin.com')) {
-      showToast("Invalid URL", "Please enter a valid LinkedIn URL.", "destructive");
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid LinkedIn URL.",
+        variant: "destructive"
+      });
       return;
     }
 
     try {
-      showToast("Processing LinkedIn Profile", "Extracting information from your LinkedIn profile.");
+      toast({
+        title: "Processing LinkedIn Profile",
+        description: "Extracting information from your LinkedIn profile.",
+      });
 
       setTimeout(() => {
-        showToast("LinkedIn Import Complete", "Your resume has been populated with LinkedIn data.");
+        toast({
+          title: "LinkedIn Import Complete",
+          description: "Your resume has been populated with LinkedIn data.",
+        });
         setLinkedinUrl('');
       }, 3000);
     } catch (error) {
-      showToast("Import Failed", "Unable to fetch LinkedIn data.", "destructive");
+      toast({
+        title: "Import Failed",
+        description: "Unable to fetch LinkedIn data.",
+        variant: "destructive"
+      });
     }
   };
 
   const navigateBack = () => {
-    // Replace with your navigation logic
     window.history.back();
   };
 
@@ -283,23 +302,31 @@ const ResumeActionBar = ({ id, resumePreviewRef, resumeFullName }: ResumeActionB
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                Upload your existing resume in PDF, DOC, or DOCX format.
+                Upload your existing resume in PDF or text format. Our AI will extract and populate all the fields automatically.
               </p>
               <Input 
                 type="file" 
-                accept=".pdf,.doc,.docx" 
+                accept=".pdf,.txt" 
                 onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
               />
-              <Button onClick={handleImportResume} className="w-full" disabled={!resumeFile}>
-                Import Resume
+              <Button 
+                onClick={handleImportResume} 
+                className="w-full" 
+                disabled={!resumeFile || isImporting}
+              >
+                {isImporting ? "Processing..." : "Import Resume"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
         
-        <Button onClick={generatePDF} className="flex items-center gap-2">
+        <Button 
+          onClick={generatePDF} 
+          className="flex items-center gap-2"
+          disabled={isGenerating}
+        >
           <Download className="h-4 w-4" />
-          Export as PDF
+          {isGenerating ? "Generating..." : "Export as PDF"}
         </Button>
       </div>
     </div>
